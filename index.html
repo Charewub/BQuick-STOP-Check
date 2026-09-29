@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STOP Check - B-Quik Service Recovery</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Kanit', sans-serif; background-color: #f4f4f5; color: #18181b; }
+/* B-Quik Theme: Yellow and Black */
+.report-header { background: linear-gradient(135deg, #27272a 0%, #000000 100%); border-radius: 2rem 2rem 0 0; border-bottom: 4px solid #facc15; }
+.fade-in { animation: fadeIn 0.8s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.a4-container { max-width: 900px; margin: 0 auto; }
+
+/* Loader Spinner */
+.loader { border: 6px solid #f4f4f5; border-top: 6px solid #facc15; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+@media print {
+    @page { size: A4 portrait; margin: 8mm; }
+    body { background-color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    #login-section, #intro-section, #quiz-section, #loading-section, .print-hide { display: none !important; }
+    #report-section > div { box-shadow: none !important; border: 1px solid #e4e4e7 !important; border-radius: 0 !important; }
+    .report-header, .shadow-sm { page-break-inside: avoid !important; break-inside: avoid !important; }
+}
+</style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+<!-- ==================== 1. LOGIN SECTION ==================== -->
+<div id="login-section" class="w-full max-w-md bg-white p-10 rounded-[2.5rem] shadow-2xl fade-in mt-10 border-t-8 border-yellow-400">
+    <div class="text-center mb-8 flex flex-col items-center">
+        <!-- B-Quik Logo -->
+        <img src="https://oa-profile-media.line-scdn.net/0h6S0hvefpaXwNEXaa2LAWK1hOZw0-czB4anYkT3R5MjNWZGVWVxBvZXRDax5rIW54RBd6T10RbTd_RSZWVzZhSF1MdRxVQStWMhR5Zlp6di1FUQ" alt="B-Quik Logo" class="h-24 w-24 object-contain rounded-2xl shadow-sm mb-4">
+        
+        <h2 class="text-2xl font-bold text-yellow-500 mt-2">STOP Check</h2>
+        <p class="text-zinc-500 text-sm mt-1">เช็กใจ ก่อนรับมือ (Service Recovery)</p>
+    </div>
+    <form id="login-form" class="space-y-5">
+        <input type="text" id="user-name" required class="w-full px-5 py-3 rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-yellow-400 text-center text-lg font-medium" placeholder="ชื่อ - นามสกุล">
+        <input type="text" id="user-id" required class="w-full px-5 py-3 rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-yellow-400 text-center text-lg font-medium" placeholder="รหัสพนักงาน">
+        <input type="text" id="user-position" required class="w-full px-5 py-3 rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-yellow-400 text-center text-lg font-medium" placeholder="ตำแหน่ง">
+        <input type="text" id="user-branch" required class="w-full px-5 py-3 rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-yellow-400 text-center text-lg font-medium" placeholder="สาขา">
+        <button type="submit" class="w-full bg-yellow-400 text-zinc-900 py-4 rounded-xl font-bold text-lg uppercase tracking-wide shadow-lg hover:bg-yellow-500 transition-colors mt-2">เริ่มทำแบบประเมิน</button>
+    </form>
+</div>
+
+<!-- ==================== 2. INTRO SECTION ==================== -->
+<div id="intro-section" class="hidden w-full max-w-3xl bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl fade-in mt-6 border-t-8 border-zinc-900">
+    <div class="text-center mb-6 flex flex-col items-center">
+        <!-- Logo -->
+        <img src="https://oa-profile-media.line-scdn.net/0h6S0hvefpaXwNEXaa2LAWK1hOZw0-czB4anYkT3R5MjNWZGVWVxBvZXRDax5rIW54RBd6T10RbTd_RSZWVzZhSF1MdRxVQStWMhR5Zlp6di1FUQ" alt="B-Quik Logo" class="h-16 w-16 object-contain rounded-xl shadow-sm">
+    </div>
+
+    <div class="space-y-6 text-zinc-700 text-sm md:text-base leading-relaxed mb-10">
+        <!-- กล่องคำแนะนำการทำ -->
+        <div class="bg-zinc-50 p-6 rounded-2xl border border-zinc-200">
+            <h3 class="font-bold text-zinc-800 text-lg mb-2">📝 คำแนะนำการทำ</h3>
+            <p>แบบประเมินมีทั้งหมด <strong>21 ข้อ</strong> (คัดกรองจาก 42 พฤติกรรม) ในแต่ละข้อจะมี 2 ตัวเลือก ให้คุณเลือกข้อที่ <strong>ตรงกับความเป็นจริงของคุณมากที่สุดในเวลาทำงาน</strong></p>
+            <ul class="list-disc pl-5 mt-3 space-y-2 marker:text-yellow-500">
+                <li><strong>เชื่อสัญชาตญาณแรก:</strong> ไม่ต้องคิดนาน เลือกข้อที่อ่านแล้วรู้สึกว่าเป็นตัวเองที่สุด</li>
+                <li><strong>หากรู้สึกว่าตรงทั้งคู่:</strong> ให้เลือกพฤติกรรมที่คุณทำบ่อยที่สุดเมื่อเจอลูกค้าตัวจริง</li>
+                <li><strong>ไม่มีข้อถูกข้อผิด:</strong> โปรดตอบตามความเป็นจริง ไม่ใช่สิ่งที่คิดว่าควรทำ</li>
+            </ul>
+        </div>
+    </div>
+
+    <button onclick="startQuiz()" class="w-full bg-zinc-900 text-white py-4 rounded-xl font-bold text-lg tracking-wide shadow-lg hover:bg-black transition-all">
+        เข้าใจแล้ว เริ่มทำแบบทดสอบ
+    </button>
+</div>
+
+<!-- ==================== 3. QUIZ SECTION ==================== -->
+<div id="quiz-section" class="hidden w-full a4-container fade-in mt-6">
+    <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-zinc-200">
+        <div class="report-header p-6 flex justify-between items-center text-white">
+            <div class="flex items-center gap-4">
+                <!-- Mini Logo in Quiz Header -->
+                <img src="https://oa-profile-media.line-scdn.net/0h6S0hvefpaXwNEXaa2LAWK1hOZw0-czB4anYkT3R5MjNWZGVWVxBvZXRDax5rIW54RBd6T10RbTd_RSZWVzZhSF1MdRxVQStWMhR5Zlp6di1FUQ" alt="B-Quik Logo" class="h-10 md:h-12 w-auto rounded-lg">
+                <!-- ชื่อเป็นตัวพิมพ์ใหญ่ -->
+                <div class="border-l-4 border-yellow-400 pl-4 font-bold text-sm md:text-base uppercase" id="display-user-name"></div>
+            </div>
+            <div class="text-right flex items-center gap-4">
+                <div><span id="q-idx" class="text-3xl font-black italic text-yellow-400">01</span><span id="q-total" class="opacity-50 text-sm">/21</span></div>
+            </div>
+        </div>
+        <div class="w-full bg-zinc-100 h-2"><div id="progress-bar" class="bg-yellow-400 h-full transition-all duration-300" style="width:0%"></div></div>
+        
+        <div class="p-8 lg:p-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 min-h-[250px]">
+                <button id="btn-A" onclick="vote('A')" class="p-6 md:p-8 border-2 border-zinc-100 rounded-2xl text-left bg-white shadow-sm hover:border-yellow-400 hover:bg-yellow-50 transition-all flex items-center justify-center">
+                    <p id="text-a" class="text-zinc-700 text-base md:text-lg font-medium leading-relaxed"></p>
+                </button>
+                <button id="btn-B" onclick="vote('B')" class="p-6 md:p-8 border-2 border-zinc-100 rounded-2xl text-left bg-white shadow-sm hover:border-yellow-400 hover:bg-yellow-50 transition-all flex items-center justify-center">
+                    <p id="text-b" class="text-zinc-700 text-base md:text-lg font-medium leading-relaxed"></p>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 4. LOADING SECTION ==================== -->
+<div id="loading-section" class="hidden w-full max-w-md bg-white p-12 rounded-[2.5rem] shadow-2xl fade-in mt-10 border-t-8 border-yellow-400 text-center mx-auto">
+    <div class="loader mb-6"></div>
+    <h2 class="text-2xl font-black text-zinc-900 tracking-wide mb-2">กำลังประมวลผล...</h2>
+    <p class="text-zinc-500 font-medium text-sm">กรุณารอสักครู่ ระบบกำลังบันทึกข้อมูลของคุณ</p>
+</div>
+
+<!-- ==================== 5. REPORT SECTION ==================== -->
+<div id="report-section" class="hidden w-full a4-container fade-in mt-2 mb-10">
+    <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col border border-zinc-200">
+        <div>
+            <!-- Header Report -->
+            <div class="report-header p-6 md:p-8 text-white flex flex-col md:flex-row justify-between items-center md:items-start gap-6 relative">
+                <div class="flex flex-col md:flex-row items-center md:items-center gap-4 md:gap-6">
+                    <!-- Logo in Report Header -->
+                    <img src="https://oa-profile-media.line-scdn.net/0h6S0hvefpaXwNEXaa2LAWK1hOZw0-czB4anYkT3R5MjNWZGVWVxBvZXRDax5rIW54RBd6T10RbTd_RSZWVzZhSF1MdRxVQStWMhR5Zlp6di1FUQ" alt="B-Quik Logo" class="h-16 md:h-20 w-auto rounded-xl shadow-md hidden md:block">
+                    <div class="text-center md:text-left">
+                        <img src="https://oa-profile-media.line-scdn.net/0h6S0hvefpaXwNEXaa2LAWK1hOZw0-czB4anYkT3R5MjNWZGVWVxBvZXRDax5rIW54RBd6T10RbTd_RSZWVzZhSF1MdRxVQStWMhR5Zlp6di1FUQ" alt="B-Quik Logo" class="h-16 w-auto rounded-xl shadow-md mx-auto mb-4 md:hidden">
+                        <h1 class="text-2xl md:text-3xl font-black uppercase tracking-tight italic leading-none">STOP CHECK PROFILE</h1>
+                        <p class="text-xs md:text-sm font-bold opacity-90 tracking-wide mt-1 text-yellow-400">รายงานผลพฤติกรรมการรับมือสถานการณ์</p>
+                    </div>
+                </div>
+                <!-- ส่วนแสดงข้อมูลพนักงาน -->
+                <div class="text-center md:text-right w-full md:w-auto border-t md:border-t-0 border-white/10 pt-4 md:pt-0 flex flex-col md:items-end">
+                    <h2 id="rpt-name-display" class="text-lg md:text-xl font-black tracking-wide text-yellow-400 mb-1 uppercase"></h2>
+                    <p id="rpt-id-display" class="text-xs md:text-sm opacity-90 mb-0.5 text-white"></p>
+                    <p id="rpt-position-display" class="text-xs md:text-sm opacity-90 mb-0.5 text-white"></p>
+                    <p id="rpt-branch-display" class="text-xs md:text-sm opacity-90 text-white"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- รายละเอียดโปรไฟล์ -->
+        <div class="p-6 md:p-10 bg-white">
+            <div class="text-center mb-8 mt-2">
+                <h3 class="text-lg md:text-xl font-black text-zinc-900 tracking-wide">ระดับความสามารถในการตั้งสติเพื่อรับมือกับสถานการณ์ คือ</h3>
+            </div>
+            
+            <!-- กล่องแสดงผลลัพธ์หลัก (ซ้าย-ขวา) -->
+            <div class="bg-yellow-50 rounded-2xl p-6 md:p-8 border border-yellow-200 mx-auto max-w-4xl shadow-sm mb-8 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                <!-- Image ฝั่งซ้าย -->
+                <div class="flex-shrink-0">
+                    <img id="profile-image" src="" alt="Level Badge" class="w-48 md:w-56 h-auto object-contain hidden drop-shadow-md">
+                </div>
+                <!-- ข้อความฝั่งขวา -->
+                <div class="text-center md:text-left w-full">
+                    <h4 id="profile-title" class="text-2xl md:text-3xl font-black text-zinc-900 mb-3"></h4>
+                    <p id="profile-desc" class="text-sm md:text-base text-zinc-700 leading-relaxed font-medium mt-2"></p>
+                </div>
+            </div>
+
+            <!-- กล่องด้านล่าง (1 คอลัมน์) -->
+            <div class="grid grid-cols-1 gap-6 max-w-3xl mx-auto">
+                <!-- แนวทางพัฒนา -->
+                <div class="bg-white rounded-2xl p-6 md:p-8 border-t-4 border-yellow-500 shadow-md relative overflow-hidden">
+                    <h4 class="text-lg font-black text-zinc-800 tracking-wide mb-4 flex items-center gap-2">
+                        <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        แนวทางพัฒนา (Next Step)
+                    </h4>
+                    <ul id="profile-dev" class="text-sm md:text-base text-zinc-600 space-y-3 list-disc pl-5 marker:text-yellow-500 font-medium"></ul>
+                </div>
+            </div>
+
+            <div class="print-hide mt-14 flex justify-center">
+                <button id="btn-download" onclick="window.print()" class="px-12 py-4 bg-zinc-900 text-white rounded-xl font-bold tracking-wide text-base shadow-xl hover:bg-black transition-all hover:-translate-y-0.5 active:scale-95 w-full sm:w-auto">ดาวน์โหลด PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 6. JAVASCRIPT LOGIC ==================== -->
+<script>
+// ==========================================
+// 🚀 URL สำหรับส่งข้อมูลไป Google Sheets
+// ==========================================
+// ⚠️ ใส่ URL ของคุณตรงนี้ครับ (เอาที่ได้จากการ Deploy อันล่าสุด)
+const scriptURL = 'https://script.google.com/macros/s/AKfycbwsmXHo6meu9ggGMaLk-kq6_enmDSu3jdxiuYVJwqA1BtYTcek2oCQg-_sgRWYeyS5q/exec'; 
+
+let currentIdx = 0; 
+let counts = { R: 0, A: 0, P: 0 }; 
+let chosenAnswers = []; 
+let userData = { name: '', id: '', position: '', branch: '' };
+
+// 🎯 Data Profiles
+const profileData = {
+    "R": { 
+        title: "ระดับ 1: ใจไปก่อน (REACT)", 
+        image: "https://s.imgz.io/2026/09/29/4d9c54b62fadfb229.png", 
+        desc: "แนวโน้มตอบสนองไว ตามแรงกระตุ้น อารมณ์ ความเร่งด่วน หรือความต้องการแก้สถานการณ์ทันที เวลาต้องรับมือกับ Service Recovery คุณมักตอบสนองต่อสิ่งที่เกิดขึ้นได้รวดเร็วมาก พอเจอลูกค้าไม่พอใจ พูดเสียงดัง หรือกดดัน ความรู้สึกภายในจะเกิดขึ้นก่อนเสมอ", 
+        bright: "คุณไวต่อสถานการณ์และพร้อมลงมือทันที ไม่ปล่อยให้ปัญหาค้างอยู่นาน เมื่อเกิดเรื่องขึ้นคุณจะแสดงความกระตือรือร้นในการจัดการทันที", 
+        dev: [
+            "หยุด 3 วินาทีก่อนตอบ โดยเฉพาะเมื่อเริ่มรู้สึกว่าตัวเองกำลังถูกกดดัน",
+            "ฟังให้จบก่อนอธิบาย อย่าเพิ่งรีบแก้หรือชี้แจงในประโยคแรก",
+            "สังเกตร่างกายตัวเอง เช่น เสียงดังขึ้น พูดเร็วขึ้น ใจเต้นแรง เพราะเป็นสัญญาณว่า 'ใจเริ่มไปก่อนแล้ว'",
+            "ใช้ประโยคช่วยซื้อเวลา เช่น 'ขอผมฟังรายละเอียดให้ครบก่อนนะครับ' หรือ 'ขอเช็กข้อมูลสักครู่นะครับ'",
+            "ทบทวนหลังจบเคส ว่าอะไรเป็น Trigger ของเรา และครั้งหน้าจะหยุดตรงจุดไหนให้ได้เร็วขึ้น"
+        ] 
+    },
+    "A": { 
+        title: "ระดับ 2: รู้ทันใจ (AWARE)", 
+        image: "https://s.imgz.io/2026/09/29/547ac603395a5ed0c.png", 
+        desc: "แนวโน้มสังเกตเห็นสิ่งที่กำลังเกิดขึ้น ทั้งในตัวเอง ลูกค้า และสถานการณ์ ก่อนที่จะตอบสนอง เมื่อต้องรับมือกับ Service Recovery คุณมักจับสัญญาณได้ว่าสถานการณ์กำลังเปลี่ยนไปอย่างไร ทั้งอารมณ์ตนเองและของลูกค้า", 
+        bright: "ทำให้ไม่ตอบเฉพาะ 'คำพูด' แต่เริ่มเข้าใจ 'ความรู้สึกและความต้องการที่อยู่ข้างใต้' เช่น ลูกค้าอาจกำลังกังวลหรือไม่มั่นใจ", 
+        dev: [
+            "ตั้งชื่อสิ่งที่กำลังเกิดขึ้นในใจ เช่น 'ตอนนี้เราเริ่มเครียด' เพื่อช่วยให้ไม่ไหลตามอารมณ์",
+            "แยก Facts กับ Feelings ว่าอะไรคือข้อเท็จจริง และอะไรคือการตีความ/ความรู้สึกของเรา",
+            "มองหาความต้องการที่อยู่หลังคำพูดลูกค้า เช่น ต้องการความมั่นใจ หรือความชัดเจน",
+            "สังเกตจังหวะของลูกค้า ว่าตอนนี้ควรฟัง ควรถาม ควรอธิบาย หรือควรหยุด",
+            "ฝึกเปลี่ยน Awareness เป็น Action เมื่อรู้ทันตัวเองแล้ว ให้เลือก 'หนึ่งพฤติกรรม' ที่จะช่วยสถานการณ์ เช่น ลดเสียงลง หรือช้าลง"
+        ] 
+    },
+    "P": { 
+        title: "ระดับ 3: ใจเลือกได้ (RESPOND)", 
+        image: "https://s.imgz.io/2026/09/29/6c55c13aea08cde86.png", 
+        desc: "แนวโน้มหยุด ประเมิน และเลือกการตอบสนองอย่างตั้งใจ แม้ยังมีอารมณ์หรือแรงกดดันอยู่ ไม่ได้แปลว่าไม่เครียด ไม่โกรธ หรือไม่กดดัน แต่รับรู้ว่าอารมณ์กำลังเกิดขึ้น แล้วเลือกได้ว่าควรทำอะไรจึงจะช่วยให้สถานการณ์ดีขึ้น", 
+        bright: "สามารถรักษาคุณภาพการตอบสนองและความเป็นมืออาชีพได้ แม้สถานการณ์จะกดดัน สามารถมองได้ทั้งสิ่งที่เกิดขึ้น ความรู้สึกลูกค้า และผลที่จะตามมาพร้อมกัน", 
+        dev: [
+            "ฝึก STOP ให้เร็วขึ้น จนการ หยุด–มอง–เลือก กลายเป็นนิสัยในสถานการณ์กดดัน",
+            "คิดก่อนตอบว่า 'สิ่งที่เราจะพูดต่อไป จะพาเรื่องไปทางไหน'",
+            "ฝึกมีหลายทางเลือก ไม่ยึดติดว่ามีวิธีรับมือเพียงแบบเดียว เพราะลูกค้าแต่ละคนต้องการไม่เหมือนกัน",
+            "รักษาสมดุลระหว่างใจลูกค้ากับข้อเท็จจริง ตอบอย่างเข้าใจและยังอยู่ในขอบเขตที่เหมาะสม",
+            "ใช้ประสบการณ์หลังจบเคสมาพัฒนาวิธีใหม่ ถามตัวเองว่า 'ครั้งหน้าเราจะทำให้ดีขึ้นหรือเร็วขึ้นได้อย่างไร'"
+        ] 
+    }
+};
+
+// ข้อมูลดิบ 42 พฤติกรรม
+const behaviors = {
+    R: [
+        "เมื่อมีปัญหาเกิดขึ้น ฉันมักอยากลงมือจัดการบางอย่างทันที",
+        "เมื่อลูกค้าไม่พอใจ ฉันมักคิดก่อนว่าจะทำอย่างไรให้เรื่องคลี่คลายเร็วที่สุด",
+        "ถ้ารู้สึกว่าลูกค้าเข้าใจผิด ฉันมักอยากรีบอธิบายให้ข้อมูลตรงกัน",
+        "เมื่อถูกตั้งคำถามในเรื่องที่ฉันมั่นใจ ฉันมักอยากอธิบายเหตุผลของตัวเองทันที",
+        "เมื่อสถานการณ์เริ่มตึงเครียด ฉันมักรู้สึกว่าต้องรีบทำอะไรสักอย่าง",
+        "ถ้าลูกค้าใช้คำพูดหรือท่าทีที่กดดัน ฉันมักตอบสนองตามจังหวะของสถานการณ์ไปก่อน",
+        "เมื่อลูกค้าถามเรื่องเดิมซ้ำ ฉันมักพยายามอธิบายให้ชัดเจนขึ้นทันที",
+        "เมื่อมีหลายเรื่องเข้ามาพร้อมกัน ฉันมักเริ่มจากเรื่องที่รู้สึกเร่งด่วนที่สุด",
+        "ถ้ามีคนรอคำตอบจากฉัน ฉันมักรู้สึกว่าควรให้คำตอบโดยเร็ว",
+        "เมื่อเหตุการณ์ไม่เป็นไปตามที่คาด ฉันมักรีบปรับตัวเพื่อให้เรื่องเดินหน้าต่อ",
+        "เมื่อเกิดความผิดพลาด ฉันมักอยากรู้ก่อนว่าเกิดขึ้นตรงไหนหรือเกิดจากอะไร",
+        "เมื่อรู้สึกถูกกดดัน ฉันมักเริ่มคิดทันทีว่าจะตอบหรือแก้สถานการณ์อย่างไร",
+        "ในสถานการณ์ที่มีแรงกดดันสูง บางครั้งคำพูดหรือการตัดสินใจของฉันเกิดขึ้นเร็วกว่าที่คิดไว้",
+        "หลังเหตุการณ์จบ บางครั้งฉันจึงเห็นว่ามีอีกวิธีหนึ่งที่อาจเหมาะกว่า"
+    ],
+    A: [
+        "ฉันสังเกตได้เมื่ออารมณ์ของตัวเองเริ่มเปลี่ยนระหว่างคุยกับลูกค้า",
+        "ฉันมักรู้ตัวเมื่อความกดดันเริ่มส่งผลต่อน้ำเสียงหรือท่าทีของตัวเอง",
+        "เวลาลูกค้าไม่พอใจ ฉันมักพยายามมองว่าอะไรคือความกังวลที่อยู่เบื้องหลัง",
+        "ฉันสังเกตได้ว่าลูกค้ากำลังต้องการให้ฟัง ต้องการคำอธิบาย หรือกำลังต้องการความมั่นใจ",
+        "ก่อนตอบ ฉันมักพยายามแยกให้ออกว่าอะไรคือข้อเท็จจริง และอะไรคือความรู้สึกของตัวเอง",
+        "ฉันสังเกตได้เมื่อกำลังฟังเพื่อเตรียมตอบ มากกว่าฟังเพื่อเข้าใจ",
+        "เมื่อบรรยากาศเริ่มตึงเครียด ฉันมักจับสัญญาณได้ว่าจังหวะของสถานการณ์กำลังเปลี่ยน",
+        "ฉันมองเห็นได้ว่าเหตุการณ์เดียวกันอาจมีความหมายต่อฉันและต่อลูกค้าไม่เหมือนกัน",
+        "ฉันมักรู้ได้เมื่อความคิดแรกของตัวเองอาจยังไม่ใช่ภาพทั้งหมดของสถานการณ์",
+        "ระหว่างเกิดปัญหา ฉันสามารถถอยออกมามองภาพรวมได้ แม้เพียงช่วงสั้น ๆ",
+        "ฉันสังเกตได้ว่าช่วงไหนควรพูด ช่วงไหนควรถาม และช่วงไหนควรฟังก่อน",
+        "ฉันพอแยกออกได้ว่าเรื่องไหนต้องรีบจัดการ และเรื่องไหนยังมีเวลาพิจารณา",
+        "ฉันมักมองหาความรู้สึกหรือความต้องการที่ลูกค้าอาจยังไม่ได้พูดออกมาตรง ๆ",
+        "หลังเจอสถานการณ์ยาก ฉันมักย้อนดูว่าอารมณ์ ความคิด หรือสมมติฐานของตัวเองมีผลต่อการรับมืออย่างไร"
+    ],
+    P: [
+        "เมื่อถูกกระตุ้นด้วยคำพูดของลูกค้า ฉันสามารถหยุดตัวเองสักจังหวะก่อนตอบได้",
+        "แม้รู้สึกไม่พอใจ ฉันยังสามารถเลือกน้ำเสียงที่ช่วยให้สถานการณ์เดินต่อได้",
+        "ก่อนให้คำตอบในเรื่องสำคัญ ฉันมักตรวจสอบก่อนว่ามีข้อมูลเพียงพอหรือยัง",
+        "ถ้าวิธีที่กำลังใช้ไม่ได้ผล ฉันสามารถเปลี่ยนวิธีรับมือได้โดยไม่ยึดติดกับวิธีเดิม",
+        "เมื่อลูกค้ามีอารมณ์ ฉันสามารถเลือกฟังก่อน แม้ในใจอยากรีบอธิบาย",
+        "เมื่อไม่แน่ใจ ฉันสามารถเลือกตรวจสอบข้อมูลก่อน แทนการรีบให้คำตอบ",
+        "ฉันสามารถแยกความรู้สึกส่วนตัวออกจากสิ่งที่สถานการณ์ต้องการให้จัดการ",
+        "หากสถานการณ์เริ่มตึงเครียด ฉันสามารถชะลอจังหวะของการสนทนาได้",
+        "ฉันมักเลือกคำพูดโดยคำนึงถึงทั้งความถูกต้องและผลที่คำพูดนั้นจะมีต่อลูกค้า",
+        "เมื่อเห็นว่าลูกค้าต้องการสิ่งที่ต่างจากที่คาด ฉันสามารถปรับวิธีของตัวเองได้",
+        "แม้ลูกค้าจะไม่เป็นมิตร ฉันยังสามารถรักษาวิธีการที่เป็นมืออาชีพได้",
+        "ในสถานการณ์ที่มีหลายทางเลือก ฉันสามารถหยุดประเมินผลที่จะตามมาก่อนตัดสินใจ",
+        "เมื่อทำพลาด ฉันสามารถเปลี่ยนจากการปกป้องตัวเองไปสู่การแก้ปัญหาได้",
+        "หลังจากหยุดและมองสถานการณ์ ฉันสามารถเลือกวิธีตอบที่คิดว่าจะช่วยพาเรื่องไปข้างหน้าได้ดีที่สุด"
+    ]
+};
+
+// 🎯 จับคู่ 21 คู่
+const mappingPairs = [
+    { a: "A10", b: "P12" }, { a: "R3",  b: "A5" },  { a: "P2",  b: "R6" }, 
+    { a: "A13", b: "R1" },  { a: "R10", b: "P4" },  { a: "P9",  b: "A3" }, 
+    { a: "A7",  b: "R5" },  { a: "R4",  b: "P3" },  { a: "P11", b: "A2" }, 
+    { a: "R14", b: "A14" }, { a: "A4",  b: "R7" },  { a: "P14", b: "R2" }, 
+    { a: "A1",  b: "P1" },  { a: "R11", b: "A9" },  { a: "P13", b: "R8" }, 
+    { a: "A11", b: "P8" },  { a: "R13", b: "P7" },  { a: "A12", b: "R9" }, 
+    { a: "P5",  b: "A6" },  { a: "P6",  b: "R12" }, { a: "A8",  b: "P10" }  
+];
+
+// แปลงค่า Map เป็นชุดข้อสอบ
+const questions = mappingPairs.map(pair => {
+    let rand = Math.random() > 0.5; 
+    let groupA = pair.a.charAt(0);
+    let indexA = parseInt(pair.a.substring(1)) - 1;
+    let groupB = pair.b.charAt(0);
+    let indexB = parseInt(pair.b.substring(1)) - 1;
+
+    let option1 = { id: pair.a, t: behaviors[groupA][indexA], c: groupA };
+    let option2 = { id: pair.b, t: behaviors[groupB][indexB], c: groupB };
+
+    return {
+        A: rand ? option1 : option2,
+        B: rand ? option2 : option1
+    };
+});
+
+// Login Logic
+document.getElementById('login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    userData.name = document.getElementById('user-name').value;
+    userData.id = document.getElementById('user-id').value;
+    userData.position = document.getElementById('user-position').value;
+    userData.branch = document.getElementById('user-branch').value; 
+    
+    document.getElementById('display-user-name').innerHTML = `คุณ ${userData.name}`;
+    
+    document.getElementById('login-section').classList.add('hidden');
+    document.getElementById('intro-section').classList.remove('hidden');
+});
+
+const startQuiz = () => {
+    document.getElementById('intro-section').classList.add('hidden');
+    document.getElementById('quiz-section').classList.remove('hidden');
+    document.getElementById('q-total').innerText = `/${questions.length}`;
+    render();
+};
+
+const render = () => {
+    const q = questions[currentIdx];
+    document.getElementById('text-a').innerText = q.A.t;
+    document.getElementById('text-b').innerText = q.B.t;
+    document.getElementById('q-idx').innerText = String(currentIdx+1).padStart(2, '0');
+    document.getElementById('progress-bar').style.width = `${(currentIdx/questions.length)*100}%`;
+};
+
+const vote = (ch) => {
+    const pick = questions[currentIdx][ch];
+    counts[pick.c]++; 
+    chosenAnswers.push(pick.id); 
+    if(++currentIdx < questions.length) {
+        render(); 
+    } else {
+        processAndSubmit(); // เมื่อทำข้อสุดท้ายเสร็จ เรียกฟังก์ชันส่งข้อมูล
+    }
+};
+
+const processAndSubmit = () => {
+    // 1. ซ่อนหน้า Quiz และแสดงหน้า Loading
+    document.getElementById('quiz-section').classList.add('hidden');
+    document.getElementById('loading-section').classList.remove('hidden');
+
+    // 2. คำนวณผลลัพธ์
+    let maxKey = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+    const myProfile = profileData[maxKey];
+
+    // 3. เตรียมข้อมูลส่ง Google Sheets
+    const formData = new URLSearchParams();
+    formData.append('name', userData.name);
+    formData.append('employeeId', userData.id);
+    formData.append('position', userData.position);
+    formData.append('branch', userData.branch);
+    formData.append('profileTitle', myProfile.title); 
+    formData.append('scoreR', counts.R);
+    formData.append('scoreA', counts.A);
+    formData.append('scoreP', counts.P);
+    formData.append('answers', chosenAnswers.join(", ")); 
+
+    // 4. ยิงข้อมูลไป Google Sheets
+    if (scriptURL && scriptURL !== 'ใส่_URL_ของ_GOOGLE_APPS_SCRIPT_ที่นี่') {
+        fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' })
+            .then(() => {
+                console.log('✅ บันทึกข้อมูลสำเร็จ! (ผ่านโหมด no-cors)');
+                // 5. เมื่อบันทึกเสร็จ ให้โชว์ Report
+                showReport(maxKey, myProfile);
+            })
+            .catch(error => {
+                console.error('❌ เกิดข้อผิดพลาดในการบันทึก!', error.message);
+                // แม้จะ Error ก็ยังต้องโชว์ Report ให้ผู้ใช้เห็น
+                showReport(maxKey, myProfile);
+            });
+    } else {
+        console.warn("⚠️ ยังไม่ได้ใส่ URL ของ Google Apps Script ข้อมูลจึงไม่ถูกส่ง (จำลองดีเลย์ 1.5 วินาที)");
+        setTimeout(() => showReport(maxKey, myProfile), 1500);
+    }
+};
+
+const showReport = (maxKey, myProfile) => {
+    // ซ่อน Loading และแสดง Report
+    document.getElementById('loading-section').classList.add('hidden');
+    document.getElementById('report-section').classList.remove('hidden');
+    
+    // อัปเดตข้อมูลพนักงาน
+    document.getElementById('rpt-name-display').innerText = userData.name;
+    document.getElementById('rpt-id-display').innerText = `รหัสพนักงาน: ${userData.id}`;
+    document.getElementById('rpt-position-display').innerText = `ตำแหน่ง: ${userData.position}`;
+    document.getElementById('rpt-branch-display').innerText = `สาขา: ${userData.branch}`;
+
+    // แสดงรูปภาพระดับและคำอธิบาย
+    const profileImg = document.getElementById('profile-image');
+    profileImg.src = myProfile.image;
+    profileImg.classList.remove('hidden');
+
+    document.getElementById('profile-title').innerText = myProfile.title;
+    document.getElementById('profile-desc').innerText = myProfile.desc;
+    document.getElementById('profile-dev').innerHTML = myProfile.dev.map(t => `<li>${t}</li>`).join("");
+};
+</script>
+</body>
+</html>
